@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Child" ALTER COLUMN "DOB" DROP NOT NULL;

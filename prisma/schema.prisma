@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model Parent {
+  id                      String   @id @default(cuid())
+  name                    String
+  phone                   String   @unique
+  email                   String   @unique
+  password                String
+  otp                     String?
+  isVerified              Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  childRecord             childRecord?
+  child                   Child[]
+}
+
+
+model Child {
+  id                      String   @id @default(cuid())
+  name                    String?
+  fatherName              String  @default("")
+  motherName              String  @default("")
+  BloodGroup              String   @default("")
+  allergies               String? 
+  DOB                     DateTime?
+  profilepic              String?
+  birthmark               String   @default("")
+  aadhar_Number           String   @default("") @unique
+  parentID                String
+  records                 Record[]
+  Upcoming_Activity       Upcoming_Activity[]
+  parent                  Parent @relation(fields: [parentID], references: [id])
+}
+
+model Hospital {
+  id          String   @id @default(cuid())
+  slno        Int      @unique
+  name        String
+  email       String   @unique
+  password    String
+  otp         String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  records     Record[]
+}
+
+
+
+model Record {
+  id                       String   @id @default(cuid())
+  title                    String
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  childId                 String
+  doctor_Name              String
+  child                    Child @relation(fields: [childId], references: [id])
+  category                 category  
+  note                     String
+  document                 String
+  hospitalID               String
+  doctor                   Hospital @relation(fields: [hospitalID], references: [id])
+}
+
+model Upcoming_Activity {
+  id                        String   @id @default(cuid())
+  title                     String
+  date                      DateTime
+  childID                   String
+  child                     Child @relation(fields: [childID], references: [id])
+}
+
+enum category {
+  Vaccination
+  Doctor_Visit
+  Lab_Test
+  Prescription
+}
+
+enum childRecord {
+  School_Record  
+  Activity_Record
+}

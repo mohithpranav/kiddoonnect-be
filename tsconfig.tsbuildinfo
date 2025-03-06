@@ -1,0 +1,1 @@
+{"root":["./src/server.ts","./src/controllers/addchildbyparent.ts","./src/controllers/addchildrecord.ts","./src/controllers/child.auth.ts","./src/controllers/hospital.auth.ts","./src/controllers/hospitaldata.ts","./src/routes/routes.ts","./src/utils/cloudinary.ts","./src/utils/email.ts","./src/utils/hospitalotp.ts","./src/utils/otp.ts"],"version":"5.8.2"}

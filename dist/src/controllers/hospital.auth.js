@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getHospitalList = exports.resendOtphospital = exports.verifyOtpControllerhospital = exports.hospitalSignin = exports.hospitalSignup = void 0;
+exports.resendOtphospital = exports.verifyOtpControllerhospital = exports.hospitalSignin = exports.hospitalSignup = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const client_1 = require("@prisma/client");
@@ -22,54 +22,34 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
 // Hospital signup
 const hospitalSignup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, password, slno, name, phone } = req.body;
+        const { email, password, slno } = req.body;
         // Validate required fields
-        if (!email || !password || !slno || !name || !phone) {
+        if (!email || !password || !slno) {
             return res.status(400).json({
                 message: "All fields are required",
             });
         }
-        // First, check if hospital exists in our seeded data and validate both slno and name
-        const hospitalData = yield prisma.hospitalData.findFirst({
-            where: {
-                AND: [{ slno: parseInt(slno) }, { hospital_name: name }],
-            },
+        // Check if hospital exists in our seeded data
+        const hospitalData = yield prisma.hospitalData.findUnique({
+            where: { slno: parseInt(slno) },
         });
         if (!hospitalData) {
             return res.status(400).json({
-                message: "Hospital ID and name do not match our records. Please verify your information.",
-            });
-        }
-        // If hospital ID exists but name doesn't match
-        const hospitalWithId = yield prisma.hospitalData.findUnique({
-            where: { slno: parseInt(slno) },
-        });
-        if (hospitalWithId && hospitalWithId.hospital_name !== name) {
-            return res.status(400).json({
-                message: "Hospital name does not match the registered ID. Please verify your information.",
+                message: "Hospital not found in our records. Please contact support.",
             });
         }
         // Check if hospital is already registered
         const existingHospital = yield prisma.hospital.findFirst({
             where: {
-                OR: [{ email }, { slno: parseInt(slno) }, { phone }],
+                OR: [{ email }, { slno: parseInt(slno) }],
             },
         });
         if (existingHospital) {
-            let message = "Registration failed: ";
-            if (existingHospital.email === email) {
-                message += "Email already registered";
-            }
-            else if (existingHospital.slno === parseInt(slno)) {
-                message += "Hospital ID already registered";
-            }
-            else {
-                message += "Phone number already registered";
-            }
-            message += existingHospital.isVerified
-                ? "."
-                : ". Registration pending verification. Please check your email.";
-            return res.status(400).json({ message });
+            return res.status(400).json({
+                message: existingHospital.isVerified
+                    ? "This hospital is already registered"
+                    : "Registration pending verification. Please check your email.",
+            });
         }
         const hashedPassword = yield bcrypt_1.default.hash(password, 10);
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -77,14 +57,13 @@ const hospitalSignup = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const hospital = yield prisma.hospital.create({
             data: {
                 slno: parseInt(slno),
-                name: hospitalData.hospital_name, // Use the exact name from database
+                name: hospitalData.hospital_name,
                 email,
                 password: hashedPassword,
-                phone,
                 otp,
             },
             include: {
-                hospitalData: true,
+                hospitalData: true, // Include the related hospital data
             },
         });
         // Send OTP via email
@@ -259,37 +238,3 @@ const resendOtphospital = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.resendOtphospital = resendOtphospital;
-// Get hospital list for dropdown
-const getHospitalList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const hospitals = yield prisma.hospitalData.findMany({
-            select: {
-                slno: true,
-                hospital_name: true,
-                zone: true,
-                ward: true,
-                address: true,
-            },
-            orderBy: {
-                slno: "asc",
-            },
-        });
-        return res.status(200).json({
-            hospitals: hospitals.map((hospital) => ({
-                value: hospital.slno,
-                label: hospital.hospital_name,
-                zone: hospital.zone,
-                ward: hospital.ward,
-                address: hospital.address,
-            })),
-        });
-    }
-    catch (error) {
-        console.error("Get hospital list error:", error);
-        return res.status(500).json({
-            message: "Failed to fetch hospital list",
-            error: error.message,
-        });
-    }
-});
-exports.getHospitalList = getHospitalList;

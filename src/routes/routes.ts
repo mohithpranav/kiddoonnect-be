@@ -13,6 +13,7 @@ import {
   hospitalSignup,
   resendOtphospital,
   verifyOtpControllerhospital,
+  getHospitalList,
 } from "../controllers/hospital.auth";
 import { addChildRecord } from "../controllers/addChildRecord";
 import { addChildByParent } from "../controllers/addChildByParent";
@@ -23,12 +24,13 @@ const router = express.Router();
 router.post("/childSignup", childSignup);
 router.post("/verifyOtpController", verifyOtpController);
 router.post("/resendOtp", resendOtp);
-router.post("/childSignup", childSignin);
+router.post("/childSignin", childSignin);
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-reset-otp", verifyResetOtp);
 router.post("/reset-password", resetPassword);
 
 // Hospital Auth Routes
+router.get("/hospitals", getHospitalList);
 router.post("/hospitalSignup", hospitalSignup);
 router.post("/verifyOtpControllerhospital", verifyOtpControllerhospital);
 router.post("/hospitalSignin", hospitalSignin);

@@ -20,7 +20,6 @@ router.post("/forgot-password", child_auth_1.forgotPassword);
 router.post("/verify-reset-otp", child_auth_1.verifyResetOtp);
 router.post("/reset-password", child_auth_1.resetPassword);
 // Hospital Auth Routes
-router.get("/hospitals", hospital_auth_1.getHospitalList);
 router.post("/hospitalSignup", hospital_auth_1.hospitalSignup);
 router.post("/verifyOtpControllerhospital", hospital_auth_1.verifyOtpControllerhospital);
 router.post("/hospitalSignin", hospital_auth_1.hospitalSignin);

@@ -7,13 +7,9 @@ const express_1 = __importDefault(require("express"));
 const routes_1 = require("./routes/routes");
 const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
-// Update CORS configuration to include your frontend port
+// Enable CORS
 app.use((0, cors_1.default)({
-    origin: [
-        "http://localhost:8081",
-        "http://localhost:5173",
-        "http://localhost:8083",
-    ], // Added port 8083
+    origin: ["http://localhost:8081", "http://localhost:5173"], // Allow both development ports
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],

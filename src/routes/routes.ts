@@ -17,8 +17,10 @@ import {
 } from "../controllers/hospital.auth";
 import { addChildRecord } from "../controllers/addChildRecord";
 import { addChildByParent } from "../controllers/addChildByParent";
+import multer from "multer";
 
 const router = express.Router();
+const upload = multer({ dest: "uploads/" }); // Configure multer as needed
 
 // Child Auth Routes
 router.post("/childSignup", childSignup);
@@ -39,7 +41,7 @@ router.post("/resendOtphospital", resendOtphospital);
 // Add Child By Parent Route
 router.post("/addChild/:parentId", addChildByParent);
 
-// Add Child Record Route
-router.post("/addChildRecord", addChildRecord);
+// Add Child Record Route with multer middleware
+router.post("/addChildRecord", upload.single("file"), addChildRecord);
 
 export { router };

@@ -74,16 +74,15 @@ model HospitalData {
 model Record {
   id                       String   @id @default(cuid())
   title                    String
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
   childId                 String
-  doctor_Name              String
+  doctor_Name              String?
   child                    Child @relation(fields: [childId], references: [id])
   category                 category  
   note                     String
   document                 String
   hospitalID               String
   doctor                   Hospital @relation(fields: [hospitalID], references: [id])
+  date                     DateTime
 }
 
 model Upcoming_Activity {

@@ -9,8 +9,10 @@ const child_auth_1 = require("../controllers/child.auth");
 const hospital_auth_1 = require("../controllers/hospital.auth");
 const addChildRecord_1 = require("../controllers/addChildRecord");
 const addChildByParent_1 = require("../controllers/addChildByParent");
+const multer_1 = __importDefault(require("multer"));
 const router = express_1.default.Router();
 exports.router = router;
+const upload = (0, multer_1.default)({ dest: "uploads/" }); // Configure multer as needed
 // Child Auth Routes
 router.post("/childSignup", child_auth_1.childSignup);
 router.post("/verifyOtpController", child_auth_1.verifyOtpController);
@@ -27,5 +29,5 @@ router.post("/hospitalSignin", hospital_auth_1.hospitalSignin);
 router.post("/resendOtphospital", hospital_auth_1.resendOtphospital);
 // Add Child By Parent Route
 router.post("/addChild/:parentId", addChildByParent_1.addChildByParent);
-// Add Child Record Route
-router.post("/addChildRecord", addChildRecord_1.addChildRecord);
+// Add Child Record Route with multer middleware
+router.post("/addChildRecord", upload.single("file"), addChildRecord_1.addChildRecord);

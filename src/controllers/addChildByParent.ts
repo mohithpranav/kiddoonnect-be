@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 const addChildByParent = async (req: Request, res: Response): Promise<any> => {
   try {
-    const { parentId } = req.query;
+    const { parentId } = req.params;
     const {
       name,
       fatherName,
@@ -27,7 +27,7 @@ const addChildByParent = async (req: Request, res: Response): Promise<any> => {
 
     // Check if parent exists
     const parent = await prisma.parent.findUnique({
-      where: { id: parentId as string },
+      where: { id: parentId },
     });
 
     if (!parent) {
@@ -36,15 +36,17 @@ const addChildByParent = async (req: Request, res: Response): Promise<any> => {
       });
     }
 
-    // Check if Aadhar number is unique
-    const existingChild = await prisma.child.findUnique({
-      where: { aadhar_Number },
-    });
-
-    if (existingChild) {
-      return res.status(400).json({
-        message: "Aadhar number already exists",
+    // Check if Aadhar number is unique (if provided)
+    if (aadhar_Number) {
+      const existingChild = await prisma.child.findUnique({
+        where: { aadhar_Number },
       });
+
+      if (existingChild) {
+        return res.status(400).json({
+          message: "Aadhar number already exists",
+        });
+      }
     }
 
     // Create the child
@@ -59,7 +61,7 @@ const addChildByParent = async (req: Request, res: Response): Promise<any> => {
         profilepic,
         birthmark,
         aadhar_Number,
-        parentID: parentId as string, // Ensure parentId is included in the child creation data
+        parentID: parentId,
       },
     });
 

@@ -1,55 +1,43 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
+import { uploadToCloudinary } from "../utils/cloudinary";
+import multer from "multer";
+
+// Extend the Request type to include the optional file property
+interface MulterRequest extends Request {
+  file?: Express.Multer.File;
+}
 
 const prisma = new PrismaClient();
 
-const addChildRecord = async (req: Request, res: Response): Promise<any> => {
-  try {
-    const { hospitalId } = req.query;
-    const { title, date, childId, category, note, document, doctorName } =
-      req.body;
+const upload = multer({ dest: "uploads/" }); // Configure multer as needed
 
-    // Validate required fields
-    if (
-      !title ||
-      !date ||
-      !childId ||
-      !category ||
-      !hospitalId ||
-      !doctorName
-    ) {
+const addChildRecord = async (
+  req: MulterRequest,
+  res: Response
+): Promise<any> => {
+  try {
+    const { title, childId, category, date, notes } = req.body;
+    const file = req.file; // TypeScript now allows this
+
+    if (!title || !childId || !category || !date || !file) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Check if child exists
-    const child = await prisma.child.findUnique({
-      where: { id: childId },
-    });
+    // Upload file to Cloudinary
+    const fileUrl = await uploadToCloudinary(file.path);
 
-    if (!child) {
-      return res.status(404).json({ message: "Child not found" });
-    }
-
-    // Check if hospital exists
-    const hospital = await prisma.hospital.findUnique({
-      where: { id: hospitalId as string },
-    });
-
-    if (!hospital) {
-      return res.status(404).json({ message: "Hospital not found" });
-    }
-
-    // Create the record
+    // Save record to database
     const record = await prisma.record.create({
       data: {
         title,
-        createdAt: new Date(date),
+        childId,
         category,
-        note,
-        document,
-        hospitalID: hospitalId as string,
-        doctor_Name: doctorName, // Ensure doctor name is included
-        childId: childId, // Use childId directly
+        date: new Date(date),
+        note: notes,
+        document: fileUrl,
+        child: { connect: { id: childId } },
+        doctor: { connect: { id: "doctorId" } },
       },
     });
 
@@ -57,10 +45,11 @@ const addChildRecord = async (req: Request, res: Response): Promise<any> => {
       .status(201)
       .json({ message: "Record added successfully", record });
   } catch (error) {
-    console.error("Add child record error:", error);
-    return res
-      .status(500)
-      .json({ message: "Failed to add record", error: (error as any).message });
+    console.error("Add record error:", error);
+    return res.status(500).json({
+      message: "Failed to add record",
+      error: (error as Error).message,
+    });
   }
 };
 
